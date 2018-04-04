@@ -36,6 +36,11 @@ public class CountryRepositoryImpl implements CountryRepository {
         Session session = factory.openSession();
         Transaction transaction = session.beginTransaction();
         Country country = session.get(Country.class, id);
+        if (country==null) {
+            transaction.commit();
+            session.close();
+            return null;
+        }
         country.setName(name);
         country.setCapital(capital);
         country.setPopulation(population);
@@ -58,7 +63,11 @@ public class CountryRepositoryImpl implements CountryRepository {
     public Collection<Country> findAll() {
         Session session = factory.openSession();
         Transaction transaction = session.beginTransaction();
-        List list = session.createQuery("FROM Country").list();
+        List list = null;
+        if (session!=null){
+            org.hibernate.Query q = session.createQuery("FROM Country");
+            if (q!=null)    list = q.list();
+        }
         transaction.commit();
         session.close();
         return list;
