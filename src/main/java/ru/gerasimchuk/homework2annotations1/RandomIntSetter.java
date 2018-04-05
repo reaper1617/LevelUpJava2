@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RandomIntSetter {
-    int max(); // параметры аннотации
-    int min(); // параметры аннотации
+    int max();
+    int min();
 }
