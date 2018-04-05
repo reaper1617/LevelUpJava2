@@ -5,7 +5,6 @@ import java.lang.reflect.Field;
 public class SerializerImpl implements Serializer{
     @Override
     public String serialize(Object obj) {
-        // тут будет рефлексия!
         StringBuilder stringBuilder = new StringBuilder("Serialized by impl1! ");
         Class cl = obj.getClass();
         Field[] fields = cl.getDeclaredFields();

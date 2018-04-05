@@ -11,32 +11,21 @@ public class SerializedByProcessor {
         String result = null;
         final SerializedBy annotation = (SerializedBy) cl.getAnnotation(SerializedBy.class);
         if (annotation!=null){
-            Class clazzSerialiser = annotation.value();
+            Class clazzSerializer = annotation.value();
             Serializer serializer = null;
             try {
-                Constructor constructor = clazzSerialiser.getDeclaredConstructor();
+                Constructor constructor = clazzSerializer.getDeclaredConstructor();
                 serializer = (Serializer) constructor.newInstance();
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InstantiationException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
+            } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
                 e.printStackTrace();
             }
-
-
-            Method[] methods = clazzSerialiser.getDeclaredMethods();
+            Method[] methods = clazzSerializer.getDeclaredMethods();
             for(Method m : methods){
                 if (m.getName().equals("serialize")) {
                     try {
-                        // arguments ?...
                         result = (String) m.invoke(serializer, obj);
                         break;
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    } catch (InvocationTargetException e) {
+                    } catch (IllegalAccessException | InvocationTargetException e) {
                         e.printStackTrace();
                     }
                 }
