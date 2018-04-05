@@ -8,7 +8,22 @@ import java.util.*;
 
 public class MainApp {
 
-
+    private static FilledClass fillData(String line) throws IllegalAccessException {
+        String[] strings = line.split(" ");
+        int var1 = Integer.parseInt(strings[0]);
+        double var2 = Double.parseDouble(strings[1]);
+        String var3 = strings[2];
+        FilledClass fc = new FilledClass();
+        Class cl = fc.getClass();
+        Field[] fields = cl.getDeclaredFields();
+        fields[0].setAccessible(true);
+        fields[0].set(fc,var1);
+        fields[1].setAccessible(true);
+        fields[1].set(fc,var2);
+        fields[2].setAccessible(true);
+        fields[2].set(fc,var3);
+        return fc;
+    }
 
     public static void main(String[] args) {
         File input = new File(System.getProperty("user.dir") + "\\src\\main\\java\\ru\\gerasimchuk\\homework1reflectionbasics\\input.txt");
@@ -17,29 +32,11 @@ public class MainApp {
         try (BufferedReader reader = new BufferedReader(new FileReader(input))){
             while ((line = reader.readLine()) != null){
                 if (line.length()!=0) {
-                    String[] strings = line.split(" ");
-                    int var1 = Integer.parseInt(strings[0]);
-                    double var2 = Double.parseDouble(strings[1]);
-                    String var3 = strings[2];
-
-                    FilledClass fc = new FilledClass();
-                    Class cl = fc.getClass();
-                    Field[] fields = cl.getDeclaredFields();
-                    fields[0].setAccessible(true);
-                    fields[0].set(fc,var1);
-                    fields[1].setAccessible(true);
-                    fields[1].set(fc,var2);
-                    fields[2].setAccessible(true);
-                    fields[2].set(fc,var3);
-
+                    FilledClass fc = fillData(line);
                     list.add(fc);
                 }
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
+        } catch (IllegalAccessException | IOException e) {
             e.printStackTrace();
         }
         for(FilledClass fc: list){
@@ -49,16 +46,9 @@ public class MainApp {
                 method = cl.getDeclaredMethod("concat");
                 method.setAccessible(true);
                 System.out.println(method.invoke(fc));
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
+            } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
                 e.printStackTrace();
             }
         }
-
-
-
     }
 }
