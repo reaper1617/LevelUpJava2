@@ -15,8 +15,7 @@ public class RandomIntSetterInvoker {
 
     private static List<Object> objectList = new LinkedList<>();
 
-    public static Object[] getObjects(String basePackage) throws ClassNotFoundException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, InstantiationException {
-        // парсим строку basePackage
+    private static String transformPackageName(String basePackage){
         char[] basePackageChars = basePackage.toCharArray();
         StringBuilder stringBuilder = new StringBuilder("");
         List<String> list = new LinkedList<>();
@@ -38,91 +37,65 @@ public class RandomIntSetterInvoker {
             stringBuilder.append(list.get(i));
             if (i != num-1) stringBuilder.append("\\");
         }
-        String p = stringBuilder.toString();
-        //System.out.println("p = " + p);
-        // создаем путь до папки с файлами .java
-        String path = "C:\\Users\\Reaper\\IdeaProjects\\homeworkLevelUp2\\src\\main\\java\\" + p;    //+ basePackage;
-        // создаем переменную - директорию
-        File dir = new File(path);
-        //if (dir.isDirectory()) System.out.println("!!!!!!! DIR!!!!!!!!");
-        // получаем массив файлов
-        File[] files = dir.listFiles();
-        //System.out.println("files num = " + files.length);
-        // для каждого файла создаем объект по имени файла, смотрим наличие аннотации у поля, если есть - задаем значение поля
-        for(File f:files){
-            //System.out.println("NextIteration");
-            // получаем имя файла
-            String fileName = f.getName();
-            //System.out.println(fileName);
-            if (f.isDirectory()){
-                //System.out.println("in dir! try recursion!");
-                getObjects(basePackage + "." + fileName );
+        return stringBuilder.toString();
+    }
+
+    private static String deleteJavaExFromClassName(String fileName){
+        char[] chars = fileName.toCharArray();
+        char[] chars2 = new char[chars.length - 5];
+        for (int i = 0; i < chars.length; i++) {
+            if (chars[i] == '.') {
+                break;
+            } else {
+                chars2[i] = chars[i];
             }
-            else {
-                // убираем из имени файла расширение ".java"
-                char[] chars = fileName.toCharArray();
-                // - ".java"
-                char[] chars2 = new char[chars.length - 5];
-                for (int i = 0; i < chars.length; i++) {
-                    if (chars[i] == '.') {
-                        break;
-                    } else {
-                        chars2[i] = chars[i];
+        }
+        return  new String(chars2);
+    }
+
+    private static boolean fillIfAnnotationFound(Field[] fields, Object filledObj){
+        boolean annotationsFound = false;
+        if (fields != null) {
+            for (Field field : fields) {
+                final RandomIntSetter randomIntSetterAnnotation = field.getAnnotation(RandomIntSetter.class);
+                if (randomIntSetterAnnotation != null) {
+                    field.setAccessible(true);
+                    try {
+                        field.set(filledObj, (new Random().nextInt(randomIntSetterAnnotation.max() - randomIntSetterAnnotation.min())) + randomIntSetterAnnotation.min());
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
                     }
+                    annotationsFound = true;
                 }
-                String className;
-                // создаем переменную с именем класса
-                className = new String(chars2);
-                //System.out.println("className = " + className);
-                // создаем переменную-файл , связанную с файлом в файловой системе
+            }
+        }
+        return annotationsFound;
+    }
+
+    public static Object[] getObjects(String basePackage) throws ClassNotFoundException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, InstantiationException {
+        String pName = transformPackageName(basePackage);
+        String path = "C:\\Users\\Reaper\\IdeaProjects\\homeworkLevelUp2\\src\\main\\java\\" + pName;
+        File dir = new File(path);
+        File[] files = dir.listFiles();
+        for(File f:files){
+            String fileName = f.getName();
+            if (f.isDirectory()) getObjects(basePackage + "." + fileName);
+            else {
+                String className = deleteJavaExFromClassName(fileName);
                 File classFile = new File(path + "\\" + fileName);
-                //System.out.println(classFile.exists());
-                // создаем объект класса ????
-                Class cl = null;
+                Class cl; Constructor constructor; Object obj = null; Field[] fields = null;
                 try {
                     cl = Class.forName(basePackage + "." + className);
-                } catch (ClassNotFoundException e) {
-                   // e.printStackTrace();
-                }
-                Object obj = null;
-                Constructor constructor;
-                try {
                     constructor = cl.getConstructor();
                     obj = constructor.newInstance();
-                } catch (Exception e) {
-                   // e.printStackTrace();
-                }
-                // рефлексия!
-                // Class cl = obj.getClass();
-                Field[] fields = null;
-                try {
                     fields = cl.getDeclaredFields();
-                } catch (Exception e) {
-                  //  e.printStackTrace();
-                }
-                boolean annotationsFound = false;
-                if (fields != null) {
-                    for (Field field : fields) {
-                        final RandomIntSetter randomIntSetterAnnotation = field.getAnnotation(RandomIntSetter.class);
-                        if (randomIntSetterAnnotation != null) {
-                            field.setAccessible(true);
-                            field.set(obj, (new Random().nextInt(randomIntSetterAnnotation.max() - randomIntSetterAnnotation.min())) + randomIntSetterAnnotation.min());
-                            //System.out.println("added: " + cl.getName());
-                            annotationsFound = true;
-                        }
-                    }
-                }
-                if (annotationsFound) {
-                    //res[currentIndex] = obj;
-                    //currentIndex++;
-                    objectList.add(obj);
-                }
+                } catch (ClassNotFoundException | NoSuchMethodException e) {}
+                boolean annotationsFound = fillIfAnnotationFound(fields, obj);
+                if (annotationsFound) objectList.add(obj);
             }
         }
         Object[] res = new Object[objectList.size()];
-        for(int i = 0; i < objectList.size(); i++){
-            res[i] = objectList.get(i);
-        }
+        for(int i = 0; i < objectList.size(); i++) res[i] = objectList.get(i);
         return res;
     }
 }
