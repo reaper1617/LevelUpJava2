@@ -30,7 +30,6 @@ public class MyList<T> {
         size = 0;
     }
 
-    // добавление в конец
     public boolean add(T data){
         MyNode current = head;
         for(int i = 0; i < size; i++){
@@ -40,7 +39,7 @@ public class MyList<T> {
         size++;
         return true;
     }
-    // добавление элемента на место элемента с индексом pos
+
     public boolean add(T data, int pos){
         if (pos < 0 || pos >= size) throw new IndexOutOfBoundsException();
         MyNode addingNode = new MyNode(data);
@@ -74,8 +73,6 @@ public class MyList<T> {
         }
         return (T) currentNode.data;
     }
-
-    // удаление элемента с позиции pos
 
     public boolean remove(int pos){
         if (pos < 0 || pos >=size) return false;
